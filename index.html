@@ -171,6 +171,27 @@
     transform: translateY(0);
   }
 
+  .video-backdrop {
+    position: absolute;
+    border: 1.5px solid rgba(212, 165, 116, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 2s ease;
+    box-shadow: 0 0 80px rgba(139, 26, 43, 0.08), 0 0 160px rgba(212, 165, 116, 0.05);
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  .video-backdrop video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 3px;
+    opacity: 0.35;
+  }
+
   .overlay {
     position: relative;
     z-index: 2;
@@ -493,7 +514,7 @@
 
   // ===== 3D CSS GALLERY =====
   const RADIUS = 380;
-  const ARC = Math.PI * 0.8;
+  const ARC = Math.PI * 1.0;
   const CARD_BASE_WIDTH = 200;
   const CARD_BASE_HEIGHT = 160;
 
@@ -526,8 +547,8 @@
       const baseW = CARD_BASE_WIDTH;
 
       const card = document.createElement('div');
-      card.className = 'photo-card';
-      card.style.width = baseW + 'px';
+    card.className = 'photo-card';
+    card.style.width = baseW + 'px';
       card.style.height = baseH + 'px';
       card.style.left = 'calc(50% - ' + (baseW / 2) + 'px)';
       card.style.top = 'calc(50% - ' + (baseH / 2) + 'px)';
@@ -562,6 +583,8 @@
         updateProgress();
       };
 
+      card.appendChild(img);
+
       const frame = document.createElement('div');
       frame.className = 'frame';
       card.appendChild(frame);
@@ -569,8 +592,6 @@
       const glow = document.createElement('div');
       glow.className = 'glow';
       card.appendChild(glow);
-
-      card.appendChild(img);
 
       const label = document.createElement('div');
       label.className = 'label';
@@ -762,6 +783,38 @@
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
   });
 
+  // ===== VIDEO BACKDROP =====
+  function buildVideoFrame() {
+    const frame = document.createElement('div');
+    frame.className = 'video-backdrop';
+
+    const video = document.createElement('video');
+    video.src = 'assets/mothers-day-ai-slop-collage.mp4';
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.autoplay = true;
+    video.preload = 'metadata';
+
+    frame.appendChild(video);
+
+    video.onloadedmetadata = () => {
+      const aspect = video.videoWidth / video.videoHeight;
+      const maxW = Math.min(window.innerWidth * 0.6, 520);
+      const w = maxW;
+      const h = w / aspect;
+
+      frame.style.width = w + 'px';
+      frame.style.height = h + 'px';
+      frame.style.left = 'calc(50% - ' + (w / 2) + 'px)';
+      frame.style.top = 'calc(50% - ' + (h / 2) + 'px)';
+      frame.style.transform = 'translate3d(0px, 20px, -220px)';
+      frame.style.opacity = '1';
+    };
+
+    stage.appendChild(frame);
+  }
+
   // ===== RESIZE =====
   window.addEventListener('resize', () => {
     // Recalculate positions based on viewport
@@ -769,6 +822,7 @@
 
   // ===== INIT =====
   buildGallery();
+  buildVideoFrame();
   animateFloating();
   autoRotateLoop();
 
