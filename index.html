@@ -177,10 +177,14 @@
     border-radius: 4px;
     overflow: hidden;
     opacity: 0;
-    transition: opacity 2s ease;
+    transition: opacity 2s ease, border-color 0.4s ease;
     box-shadow: 0 0 80px rgba(139, 26, 43, 0.08), 0 0 160px rgba(212, 165, 116, 0.05);
-    pointer-events: none;
+    cursor: pointer;
     transform-style: preserve-3d;
+  }
+
+  .video-backdrop:hover {
+    border-color: rgba(212, 165, 116, 0.35);
   }
 
   .video-backdrop video {
@@ -190,6 +194,7 @@
     object-fit: cover;
     border-radius: 3px;
     opacity: 0.35;
+    transform: scaleX(-1);
   }
 
   .overlay {
@@ -360,6 +365,17 @@
 
   .lightbox.active img { transform: scale(1); }
 
+  .lightbox-video {
+    max-width: 80vw;
+    max-height: 80vh;
+    border-radius: 4px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+    border: 1px solid rgba(212, 165, 116, 0.15);
+    display: none;
+  }
+
+  .lightbox.video-mode .lightbox-arrow { display: none; }
+
   .lightbox-close {
     position: absolute;
     top: -48px;
@@ -473,6 +489,7 @@
     <button class="lightbox-close" id="lightboxClose">&#10005;</button>
     <button class="lightbox-arrow prev" id="lbPrev">&#8592;</button>
     <img id="lightboxImg" src="" alt="">
+    <video id="lightboxVideo" class="lightbox-video" muted loop playsinline controls></video>
     <button class="lightbox-arrow next" id="lbNext">&#8594;</button>
     <div class="lightbox-label" id="lightboxLabel"></div>
   </div>
@@ -507,6 +524,7 @@
   const scrollIndicator = document.getElementById('scrollIndicator');
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxVideo = document.getElementById('lightboxVideo');
   const lightboxLabel = document.getElementById('lightboxLabel');
   const lightboxClose = document.getElementById('lightboxClose');
   const lbPrev = document.getElementById('lbPrev');
@@ -752,8 +770,22 @@
     autoRotate = false;
   }
 
+  function openVideoLightbox() {
+    lightboxImg.style.display = 'none';
+    lightboxVideo.style.display = 'block';
+    lightboxVideo.src = 'assets/mothers-day-ai-slop-collage.mp4';
+    lightboxVideo.play();
+    lightboxLabel.textContent = 'Our story in motion';
+    lightbox.classList.add('active', 'video-mode');
+    document.body.style.overflow = 'hidden';
+    autoRotate = false;
+  }
+
   function closeLightboxFn() {
-    lightbox.classList.remove('active');
+    lightbox.classList.remove('active', 'video-mode');
+    lightboxVideo.pause();
+    lightboxVideo.style.display = 'none';
+    lightboxImg.style.display = '';
     document.body.style.overflow = '';
     autoRotate = true;
   }
@@ -773,14 +805,16 @@
   });
 
   lightboxClose.addEventListener('click', closeLightboxFn);
-  lbPrev.addEventListener('click', (e) => { e.stopPropagation(); navigateLightbox(-1); });
-  lbNext.addEventListener('click', (e) => { e.stopPropagation(); navigateLightbox(1); });
+  lbPrev.addEventListener('click', (e) => { if (lightbox.classList.contains('video-mode')) return; e.stopPropagation(); navigateLightbox(-1); });
+  lbNext.addEventListener('click', (e) => { if (lightbox.classList.contains('video-mode')) return; e.stopPropagation(); navigateLightbox(1); });
 
   document.addEventListener('keydown', (e) => {
     if (!lightbox.classList.contains('active')) return;
     if (e.key === 'Escape') closeLightboxFn();
-    if (e.key === 'ArrowRight') navigateLightbox(1);
-    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (!lightbox.classList.contains('video-mode')) {
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    }
   });
 
   // ===== VIDEO BACKDROP =====
@@ -813,6 +847,11 @@
     };
 
     stage.appendChild(frame);
+
+    frame.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openVideoLightbox();
+    });
   }
 
   // ===== RESIZE =====
