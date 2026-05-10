@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You, Mom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose-deep: #8B1A2B;
+    --rose: #C2185B;
+    --blush: #F8E8EE;
+    --blush-light: #FDF2F5;
+    --gold: #D4A574;
+    --gold-light: #F0D5B0;
+    --cream: #FFF8F5;
+    --charcoal: #2D1B1E;
+    --petal-pink: #F5D6E0;
+    --dusty-rose: #D4A0B0;
+    --shadow: rgba(139, 26, 43, 0.15);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--cream);
+    color: var(--charcoal);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(196, 30, 58, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(212, 165, 116, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(245, 214, 224, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .noise {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0.035;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .header-ornament {
+    font-size: 28px;
+    color: var(--dusty-rose);
+    letter-spacing: 12px;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.2s forwards;
+  }
+
+  .header h1 {
+    font-family: 'Tangerine', cursive;
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    font-weight: 700;
+    color: var(--rose-deep);
+    line-height: 1.1;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.4s forwards;
+    text-shadow: 2px 2px 4px rgba(139, 26, 43, 0.1);
+  }
+
+  .header .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--dusty-rose);
+    margin-top: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.6s forwards;
+  }
+
+  .header .message {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+    font-weight: 400;
+    color: var(--charcoal);
+    max-width: 600px;
+    margin: 24px auto 0;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.8s forwards;
+    font-style: italic;
+  }
+
+  /* ===== COLLAGE GRID ===== */
+  .collage {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(180px, auto);
+    gap: 20px;
+    padding: 50px 0;
+    position: relative;
+  }
+
+  .collage-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 0 4px 30px var(--shadow);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: pointer;
+  }
+
+  .collage-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .collage-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .collage-item:hover::before {
+    opacity: 1;
+  }
+
+  .collage-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(212, 165, 116, 0.15);
+    z-index: 2;
+    pointer-events: none;
+    border-radius: 4px;
+  }
+
+  .collage-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .collage-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .collage-item .overlay-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px 16px 14px;
+    background: linear-gradient(transparent, rgba(45, 27, 30, 0.6));
+    color: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.4s ease;
+    z-index: 3;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .collage-item:hover .overlay-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== SPAN SIZES ===== */
+  .span-2x2 { grid-column: span 2; grid-row: span 2; }
+  .span-2x1 { grid-column: span 2; grid-row: span 1; }
+  .span-1x2 { grid-column: span 1; grid-row: span 2; }
+  .span-3x2 { grid-column: span 3; grid-row: span 2; }
+  .span-2x3 { grid-column: span 2; grid-row: span 3; }
+  .span-3x1 { grid-column: span 3; grid-row: span 1; }
+  .span-1x1 { grid-column: span 1; grid-row: span 1; }
+  .span-2x4 { grid-column: span 2; grid-row: span 4; }
+
+  /* ===== POLAROID STYLE ===== */
+  .polaroid {
+    padding: 10px 10px 35px 10px;
+    background: var(--cream);
+    box-shadow: 0 8px 40px var(--shadow), inset 0 0 0 1px rgba(212, 165, 116, 0.1);
+    border-radius: 2px;
+  }
+
+  .polaroid img {
+    border-radius: 1px;
+  }
+
+  .polaroid::after {
+    border: none !important;
+  }
+
+  /* ===== HEART DIVIDER ===== */
+  .divider {
+    text-align: center;
+    padding: 20px 0;
+    position: relative;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 50px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+  }
+
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+
+  .divider-icon {
+    display: inline-block;
+    font-size: 20px;
+    color: var(--dusty-rose);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 40px 20px 60px;
+    position: relative;
+  }
+
+  .footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .footer p {
+    font-size: 1.1rem;
+    color: var(--dusty-rose);
+    font-style: italic;
+    margin-top: 24px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 1.5s forwards;
+  }
+
+  .footer .signature {
+    font-family: 'Tangerine', cursive;
+    font-size: 2.2rem;
+    color: var(--rose);
+    margin-top: 8px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 1.8s forwards;
+  }
+
+  .footer .date {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-top: 16px;
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 2s forwards;
+  }
+
+  /* ===== FLOATING PETALS ===== */
+  .petals-container {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .petal {
+    position: absolute;
+    top: -40px;
+    width: 18px;
+    height: 18px;
+    background: radial-gradient(ellipse at 30% 30%, var(--petal-pink), var(--dusty-rose));
+    border-radius: 50% 0 50% 0;
+    opacity: 0;
+    animation: fall linear infinite;
+  }
+
+  .petal:nth-child(1) { left: 5%; width: 14px; height: 16px; animation-duration: 14s; animation-delay: 0s; }
+  .petal:nth-child(2) { left: 15%; width: 20px; height: 18px; animation-duration: 18s; animation-delay: 3s; }
+  .petal:nth-child(3) { left: 25%; width: 12px; height: 14px; animation-duration: 16s; animation-delay: 6s; }
+  .petal:nth-child(4) { left: 40%; width: 22px; height: 20px; animation-duration: 20s; animation-delay: 1s; }
+  .petal:nth-child(5) { left: 55%; width: 16px; height: 14px; animation-duration: 15s; animation-delay: 8s; }
+  .petal:nth-child(6) { left: 65%; width: 14px; height: 16px; animation-duration: 19s; animation-delay: 4s; }
+  .petal:nth-child(7) { left: 75%; width: 18px; height: 16px; animation-duration: 17s; animation-delay: 2s; }
+  .petal:nth-child(8) { left: 85%; width: 12px; height: 14px; animation-duration: 21s; animation-delay: 7s; }
+  .petal:nth-child(9) { left: 92%; width: 20px; height: 18px; animation-duration: 16s; animation-delay: 5s; }
+  .petal:nth-child(10) { left: 35%; width: 16px; height: 16px; animation-duration: 22s; animation-delay: 9s; }
+
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg) scale(0.6); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(100vh) rotate(720deg) scale(0.8); opacity: 0; }
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+
+  /* ===== LIGHTBOX ===== */
+  .lightbox {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(45, 27, 30, 0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    cursor: pointer;
+  }
+
+  .lightbox.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .lightbox img {
+    max-width: 85vw;
+    max-height: 85vh;
+    border-radius: 4px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .lightbox.active img {
+    transform: scale(1);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 24px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    background: transparent;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .lightbox-close:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.4);
+  }
+
+  .lightbox-nav {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    opacity: 0.6;
+    letter-spacing: 1px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .collage {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .span-3x2 { grid-column: span 2; }
+    .span-2x3 { grid-row: span 2; }
+    .span-3x1 { grid-column: span 2; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 20px 14px; }
+    .collage {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .collage-item { grid-column: span 1 !important; grid-row: span 1 !important; }
+    .header { padding: 30px 10px 20px; }
+    .header-ornament { font-size: 20px; letter-spacing: 8px; }
+    .polaroid { padding: 6px 6px 22px 6px; }
+    .collage-item .overlay-label { opacity: 1; transform: translateY(0); padding: 30px 10px 10px; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="petals-container">
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+  <div class="petal"></div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">&#10005;</button>
+  <img id="lightboxImg" src="" alt="Enlarged photo">
+  <div class="lightbox-nav" id="lightboxNav"></div>
+</div>
+
+<div class="container">
+  <header class="header">
+    <div class="header-ornament">&#x2661; &bull; &#x2661; &bull; &#x2661;</div>
+    <h1>For You, Mom</h1>
+    <div class="subtitle">A gallery of our most cherished moments</div>
+    <p class="message">Every photograph holds a memory, every smile a story. This collection is a small token of gratitude for the love, warmth, and beauty you bring to every day.</p>
+  </header>
+
+  <div class="divider">
+    <span class="divider-icon">&#x2661;</span>
+  </div>
+
+  <div class="collage" id="collage">
+    <!-- Collage items will be inserted by JS -->
+  </div>
+
+  <div class="divider">
+    <span class="divider-icon">&#x2661;</span>
+  </div>
+
+  <footer class="footer">
+    <p>With all my love, today and every day</p>
+    <div class="signature">Happy Mother's Day</div>
+    <div class="date">May 10 &bull; 2026</div>
+  </footer>
+</div>
+
+<script>
+  const IMAGES = [
+    { file: 'assets/img-1.jpeg', span: 'span-2x2 polaroid', label: 'A moment to treasure' },
+    { file: 'assets/img-2.jpeg', span: 'span-1x2', label: 'Beautiful you' },
+    { file: 'assets/img-3.JPG', span: 'span-2x1', label: 'Radiant smile' },
+    { file: 'assets/img-4.JPG', span: 'span-2x1', label: 'Pure joy' },
+    { file: 'assets/img-5.JPG', span: 'span-1x1', label: 'Everlasting love' },
+    { file: 'assets/img-6.JPG', span: 'span-1x1', label: 'Warm embrace' },
+    { file: 'assets/img-7.JPG', span: 'span-1x2', label: 'You light up our world' },
+    { file: 'assets/img-8.JPG', span: 'span-2x2 polaroid', label: 'Our favorite memories' },
+    { file: 'assets/img-9.JPG', span: 'span-1x1', label: 'Endless grace' },
+    { file: 'assets/img-10.JPG', span: 'span-1x1', label: 'Shining bright' },
+    { file: 'assets/img-11.JPG', span: 'span-1x1', label: 'Strength & beauty' },
+    { file: 'assets/img-12.JPG', span: 'span-2x1', label: 'Heart full of love' },
+    { file: 'assets/img-13.JPG', span: 'span-1x1', label: 'Thank you for everything' },
+    { file: 'assets/img-14.JPG', span: 'span-2x1', label: 'Simply the best' },
+  ];
+
+  const collage = document.getElementById('collage');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxNav = document.getElementById('lightboxNav');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  let currentIndex = 0;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function buildCollage() {
+    const shuffled = shuffle(IMAGES);
+    collage.innerHTML = '';
+    shuffled.forEach((img, index) => {
+      const item = document.createElement('div');
+      item.className = `collage-item ${img.span}`;
+      item.style.animationDelay = `${0.3 + index * 0.08}s`;
+      item.dataset.index = index;
+
+      const imageEl = document.createElement('img');
+      imageEl.src = img.file;
+      imageEl.alt = img.label;
+      imageEl.loading = 'lazy';
+
+      const label = document.createElement('div');
+      label.className = 'overlay-label';
+      label.textContent = img.label;
+
+      item.appendChild(imageEl);
+      item.appendChild(label);
+      collage.appendChild(item);
+
+      // Intersection observer for reveal
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(item);
+
+      // Click to open lightbox
+      item.addEventListener('click', () => {
+        currentIndex = parseInt(item.dataset.index);
+        openLightbox(currentIndex);
+      });
+    });
+  }
+
+  function openLightbox(index) {
+    const items = document.querySelectorAll('.collage-item');
+    const img = items[index]?.querySelector('img');
+    if (!img) return;
+    lightboxImg.src = img.src;
+    lightboxImg.alt = img.alt;
+    lightboxNav.textContent = `${index + 1} / ${IMAGES.length}`;
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function navigateLightbox(e) {
+    if (e.target !== lightbox && e.target !== lightboxImg) return;
+    const rect = lightboxImg.getBoundingClientRect();
+    const x = e.clientX;
+    if (x < rect.left) {
+      currentIndex = (currentIndex - 1 + IMAGES.length) % IMAGES.length;
+    } else if (x > rect.right) {
+      currentIndex = (currentIndex + 1) % IMAGES.length;
+    } else {
+      return;
+    }
+    openLightbox(currentIndex);
+  }
+
+  lightbox.addEventListener('click', navigateLightbox);
+  lightboxClose.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') {
+      currentIndex = (currentIndex + 1) % IMAGES.length;
+      openLightbox(currentIndex);
+    }
+    if (e.key === 'ArrowLeft') {
+      currentIndex = (currentIndex - 1 + IMAGES.length) % IMAGES.length;
+      openLightbox(currentIndex);
+    }
+  });
+
+  buildCollage();
+
+  // Make polaroid items visible immediately (they have staggered delays via CSS)
+  setTimeout(() => {
+    document.querySelectorAll('.collage-item').forEach(item => item.classList.add('visible'));
+  }, 100);
+</script>
+
+</body>
+</html>
